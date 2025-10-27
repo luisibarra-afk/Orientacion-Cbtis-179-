@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Orientación Educativa — CBTis No. 179</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', Arial, sans-serif;
+      background-color: #f4f4f9;
+      margin: 0;
+      padding: 0;
+      color: #333;
+    }
+    header {
+      background-color: #6b0f1a;
+      color: white;
+      text-align: center;
+      padding: 1.2em;
+    }
+    main {
+      max-width: 900px;
+      margin: 3em auto;
+      text-align: center;
+    }
+    .card {
+      background: white;
+      padding: 2em;
+      margin: 1.5em 0;
+      border-radius: 10px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+      transition: transform 0.2s ease;
+    }
+    .card:hover {
+      transform: scale(1.02);
+    }
+    .card h2 {
+      color: #6b0f1a;
+    }
+    a.button {
+      display: inline-block;
+      background-color: #6b0f1a;
+      color: white;
+      padding: 0.7em 1.5em;
+      border-radius: 6px;
+      text-decoration: none;
+      font-weight: 600;
+      margin-top: 1em;
+      transition: background 0.3s;
+    }
+    a.button:hover {
+      background-color: #8c1c2c;
+    }
+    footer {
+      text-align: center;
+      color: #6b0f1a;
+      padding: 1em;
+      border-top: 1px solid #ccc;
+      font-size: 0.9em;
+      margin-top: 3em;
+    }
+    /* LOGIN */
+    #login {
+      max-width: 400px;
+      margin: 100px auto;
+      background: white;
+      padding: 2em;
+      border-radius: 8px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+      text-align: center;
+      animation: fadein 0.3s;
+    }
+    @keyframes fadein {
+      from {opacity:0; transform:translateY(-10px);}
+      to {opacity:1; transform:translateY(0);}
+    }
+    input {
+      width: 90%;
+      padding: 0.5em;
+      margin: 0.5em 0;
+      border-radius: 5px;
+      border: 1px solid #ccc;
+      font-size: 1em;
+    }
+    button {
+      background-color: #6b0f1a;
+      color: white;
+      border: none;
+      padding: 0.8em 1.5em;
+      border-radius: 5px;
+      cursor: pointer;
+      font-size: 1em;
+    }
+    button:hover {
+      background-color: #8c1c2c;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Departamento de Orientación Educativa</h1>
+    <h2>Centro de Bachillerato Tecnológico industrial y de servicios No. 179</h2>
+  </header>
+
+  <!-- LOGIN -->
+  <div id="login">
+    <h2>Acceso restringido</h2>
+    <p>Ingrese las credenciales autorizadas</p>
+    <input type="text" id="user" placeholder="Usuario"><br>
+    <input type="password" id="pass" placeholder="Contraseña"><br>
+    <button onclick="login()">Entrar</button>
+    <p id="msg" style="color:red;"></p>
+  </div>
+
+  <!-- MENÚ PRINCIPAL -->
+  <main id="menu" style="display:none;">
+    <div class="card">
+      <h2>Justificantes escolares</h2>
+      <p>Genera justificantes digitales con QR y registro automático.</p>
+      <a href="justificantes.html" class="button">Ir al módulo</a>
+    </div>
+
+    <div class="card">
+      <h2>Citatorios escolares</h2>
+      <p>Emite citatorios oficiales a padres o tutores con validez institucional.</p>
+      <a href="citatorios.html" class="button">Ir al módulo</a>
+    </div>
+
+    <div class="card">
+      <h2>Permisos de salida</h2>
+      <p>Registra y autoriza salidas durante horario escolar con control digital.</p>
+      <a href="permisos.html" class="button">Ir al módulo</a>
+    </div>
+  </main>
+
+  <footer>
+    © 2025 | Desarrollado por <strong>Luis Eduardo Ibarra Hernández</strong> — CBTis No. 179
+  </footer>
+
+  <script>
+    const USER = "orientacion179";
+    const PASS = "cbtis2025";
+
+    function login() {
+      const u = document.getElementById("user").value.trim();
+      const p = document.getElementById("pass").value.trim();
+      const msg = document.getElementById("msg");
+
+      if (u === USER && p === PASS) {
+        document.getElementById("login").style.display = "none";
+        document.getElementById("menu").style.display = "block";
+        localStorage.setItem("sesionOE", "activa");
+      } else {
+        msg.textContent = "Usuario o contraseña incorrectos.";
+      }
+    }
+
+    // Si ya hay sesión, mostrar el menú automáticamente
+    window.onload = () => {
+      if (localStorage.getItem("sesionOE") === "activa") {
+        document.getElementById("login").style.display = "none";
+        document.getElementById("menu").style.display = "block";
+      }
+    };
+  </script>
+</body>
+</html>

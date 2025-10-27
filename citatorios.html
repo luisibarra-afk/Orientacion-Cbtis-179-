@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Citatorios Escolares — CBTis 179</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f4f4f9;
+      margin: 0;
+      padding: 0;
+    }
+    header {
+      background-color: #6b0f1a;
+      color: white;
+      text-align: center;
+      padding: 1em;
+    }
+    main {
+      max-width: 800px;
+      margin: 2em auto;
+      background: white;
+      padding: 2em;
+      border-radius: 10px;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    }
+    label {
+      font-weight: bold;
+      margin-top: 1em;
+      display: block;
+    }
+    input, textarea, select {
+      width: 100%;
+      padding: 0.5em;
+      margin-top: 0.3em;
+      border-radius: 5px;
+      border: 1px solid #ccc;
+      box-sizing: border-box;
+    }
+    button {
+      background-color: #6b0f1a;
+      color: white;
+      border: none;
+      padding: 0.8em 1.5em;
+      border-radius: 5px;
+      margin-top: 1em;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: #8c1c2c;
+    }
+    footer {
+      text-align: center;
+      margin-top: 30px;
+      padding: 10px;
+      font-size: 0.9em;
+      color: #6b0f1a;
+      border-top: 1px solid #ccc;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Citatorios Escolares — CBTis No. 179</h1>
+  </header>
+
+  <main>
+    <form id="formCitatorio">
+      <label>Nombre del alumno:</label>
+      <input type="text" id="nombre" required>
+
+      <label>Número de control:</label>
+      <input type="text" id="numero" required>
+
+      <label>Especialidad:</label>
+      <select id="especialidad" required>
+        <option value="">Seleccione...</option>
+        <option>Administración de Recursos Humanos</option>
+        <option>Trabajo Social</option>
+        <option>Arquitectura</option>
+        <option>Programación</option>
+        <option>Electricidad</option>
+        <option>Mecatrónica</option>
+        <option>Ciberseguridad</option>
+      </select>
+
+      <label>Semestre:</label>
+      <select id="semestre" required>
+        <option value="">Seleccione...</option>
+        <option>1°</option><option>2°</option><option>3°</option>
+        <option>4°</option><option>5°</option><option>6°</option>
+      </select>
+
+      <label>Turno:</label>
+      <select id="turno" required>
+        <option value="">Seleccione...</option>
+        <option>Matutino</option>
+        <option>Vespertino</option>
+      </select>
+
+      <label>Motivo del citatorio:</label>
+      <textarea id="motivo" rows="3" required></textarea>
+
+      <label>Fecha y hora de la cita:</label>
+      <input type="datetime-local" id="fechaCita" required>
+
+      <label>Persona citada:</label>
+      <input type="text" id="personaCitada" placeholder="Ej. Madre del alumno" required>
+
+      <label>Teléfono de contacto:</label>
+      <input type="tel" id="telefono" pattern="[0-9]{10}" placeholder="10 dígitos" required>
+
+      <label>Emitido por:</label>
+      <select id="emitidoPor" required>
+        <option value="">Seleccione...</option>
+        <option>Luis Eduardo Ibarra Hernández – Servicios Escolares T.V.</option>
+        <option>Ivonne Teresa Ortega Alfaro – Orientacion Educativa</option>
+        <option>María Butrón Venegas –  Enfermeria</option>
+      </select>
+
+      <button type="button" onclick="generarPDF()">Generar Citatorio PDF</button>
+    </form>
+  </main>
+
+  <footer>
+    © 2025 | Desarrollado por <strong>Luis Eduardo Ibarra Hernández</strong> — CBTis No. 179.
+  </footer>
+
+  <div id="qrcode" style="display:none;"></div>
+
+  <script>
+    // 🛡️ Protección de acceso (requiere sesión activa del index)
+    if (localStorage.getItem("sesionOE") !== "activa") {
+      alert("⚠️ Acceso no autorizado. Inicie sesión desde el portal de Orientación Educativa.");
+      window.location.href = "index.html";
+    }
+
+    // URL del Google Apps Script (copia la tuya aquí)
+    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbx3-UzNO-jTqSwREy1_JXKo-ECCqw3P0uicpue9SMeMqBpKlsz6C7PCGLHEkHpLaZQD/exec";
+
+    async function generarPDF() {
+      const { jsPDF } = window.jspdf;
+      const doc = new jsPDF();
+
+      const nombre = document.getElementById('nombre').value;
+      const numero = document.getElementById('numero').value;
+      const especialidad = document.getElementById('especialidad').value;
+      const semestre = document.getElementById('semestre').value;
+      const turno = document.getElementById('turno').value;
+      const motivo = document.getElementById('motivo').value;
+      const fechaCita = document.getElementById('fechaCita').value;
+      const personaCitada = document.getElementById('personaCitada').value;
+      const telefono = document.getElementById('telefono').value;
+      const emitidoPor = document.getElementById('emitidoPor').value;
+
+      const folio = "CIT-" + Math.floor(Math.random() * 1000000);
+
+      // Generar código QR con el folio
+      const qrDiv = document.getElementById('qrcode');
+      qrDiv.innerHTML = "";
+      new QRCode(qrDiv, { text: folio, width: 100, height: 100 });
+      await new Promise(r => setTimeout(r, 500));
+      const qrImg = qrDiv.querySelector('img').src;
+
+      // Encabezado
+      const encabezado = new Image();
+      encabezado.src = "encabezado.png";
+      try { doc.addImage(encabezado, "PNG", 10, 5, 190, 25); } catch(e){}
+
+      // Título
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(14);
+      doc.text("CITATORIO ESCOLAR", 105, 40, { align: "center" });
+
+      // Datos
+      doc.setFont("helvetica", "normal");
+      doc.setFontSize(11);
+      let y = 55;
+      doc.text(`Folio: ${folio}`, 25, y); y += 8;
+      doc.text(`Alumno: ${nombre}`, 25, y); y += 8;
+      doc.text(`Número de control: ${numero}`, 25, y); y += 8;
+      doc.text(`Especialidad: ${especialidad} — ${semestre} Semestre — ${turno}`, 25, y); y += 8;
+      doc.text(`Motivo: ${motivo}`, 25, y); y += 8;
+      doc.text(`Fecha y hora de la cita: ${new Date(fechaCita).toLocaleString()}`, 25, y); y += 8;
+      doc.text(`Persona citada: ${personaCitada}`, 25, y); y += 8;
+      doc.text(`Teléfono: ${telefono}`, 25, y); y += 8;
+      doc.text(`Emitido por: ${emitidoPor}`, 25, y); y += 10;
+
+      doc.addImage(qrImg, "PNG", 150, 60, 45, 45);
+      doc.text(`Fecha de emisión: ${new Date().toLocaleDateString()}`, 25, y);
+
+      // Firma
+      doc.line(25, 155, 90, 155);
+      doc.text(emitidoPor, 25, 162);
+      doc.text("Firma del emisor", 25, 168);
+
+      // Sello
+      doc.rect(140, 140, 50, 50);
+      doc.setFontSize(9);
+      doc.text("SELLO DE LA ESCUELA", 165, 195, { align: "center" });
+
+      // Mensaje final
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(11);
+      doc.text("Se solicita la asistencia puntual del padre, madre o tutor.", 105, 215, { align: "center" });
+      doc.text("El no acudir podrá derivar en medidas administrativas.", 105, 221, { align: "center" });
+
+      // Pie
+      const pie = new Image();
+      pie.src = "pie.png";
+      try { doc.addImage(pie, "PNG", 10, 265, 190, 20); } catch(e){}
+
+      doc.save(`Citatorio_${folio}.pdf`);
+
+      // Registrar datos en Google Sheets
+      const fecha = new Date().toLocaleString();
+      const data = { fecha, folio, nombre, numero, especialidad, semestre, turno, motivo, fechaCita, personaCitada, telefono, emitidoPor };
+      await fetch(SCRIPT_URL, { method: "POST", mode: "no-cors", headers: { "Content-Type": "application/json" }, body: JSON.stringify(data) });
+
+      alert("✅ Citatorio generado y registrado correctamente.");
+      document.getElementById("formCitatorio").reset();
+    }
+  </script>
+</body>
+</html>
