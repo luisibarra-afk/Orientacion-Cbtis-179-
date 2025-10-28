@@ -182,91 +182,106 @@
     // URL de Google Apps Script
     const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzH86aNRhrdz-K2tCR-wmXXVTK-y2I-mpbj_nctG_R6Rl1DZig5eIdW-1E4IN8UibZo/exec";
 
-    async function generarPDF() {
-      const { jsPDF } = window.jspdf;
-      const doc = new jsPDF();
+async function generarPDF() {
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF();
 
-      const nombre = document.getElementById('nombre').value;
-      const numero = document.getElementById('numero').value;
-      const especialidad = document.getElementById('especialidad').value;
-      const semestre = document.getElementById('semestre').value;
-      const turno = document.getElementById('turno').value;
-      const motivo = document.getElementById('motivo').value;
-      const fechas = document.getElementById('fechas').value;
-      const nombreEntrega = document.getElementById('nombreEntrega').value;
-      const tipoEntrega = document.getElementById('tipoEntrega').value;
-      const telefono = document.getElementById('telefono').value;
-      const validador = document.getElementById('validador').value;
+  const nombre = document.getElementById('nombre').value;
+  const numero = document.getElementById('numero').value;
+  const especialidad = document.getElementById('especialidad').value;
+  const semestre = document.getElementById('semestre').value;
+  const turno = document.getElementById('turno').value;
+  const motivo = document.getElementById('motivo').value;
+  const fechas = document.getElementById('fechas').value;
+  const nombreEntrega = document.getElementById('nombreEntrega').value;
+  const tipoEntrega = document.getElementById('tipoEntrega').value;
+  const telefono = document.getElementById('telefono').value;
+  const validador = document.getElementById('validador').value;
 
-      const folio = "JUS-" + Math.floor(Math.random() * 1000000);
-      const qrDiv = document.getElementById('qrcode');
-      qrDiv.innerHTML = "";
-      new QRCode(qrDiv, { text: folio, width: 100, height: 100 });
-      await new Promise(r => setTimeout(r, 500));
-      const qrImg = qrDiv.querySelector('img').src;
+  const folio = "JUS-" + Math.floor(Math.random() * 1000000);
 
-      const encabezado = new Image();
-      encabezado.src = "encabezado.png";
-      try { doc.addImage(encabezado, "PNG", 10, 5, 190, 25); } catch(e){}
+  // Generar QR
+  const qrDiv = document.getElementById('qrcode');
+  qrDiv.innerHTML = "";
+  new QRCode(qrDiv, { text: folio, width: 100, height: 100 });
+  await new Promise(r => setTimeout(r, 500));
+  const qrImg = qrDiv.querySelector('img').src;
 
-      doc.setFont("helvetica", "bold");
-      doc.setFontSize(14);
-      doc.text("JUSTIFICANTE ESCOLAR DIGITAL", 105, 40, { align: "center" });
+  // Encabezado
+  const encabezado = new Image();
+  encabezado.src = "encabezado.png";
+  try { doc.addImage(encabezado, "PNG", 10, 5, 190, 25); } catch(e){}
 
-      doc.setFontSize(11);
-      doc.text(`${especialidad} – ${semestre} Semestre – Turno ${turno}`, 105, 50, { align: "center" });
+  // Título
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(14);
+  doc.text("JUSTIFICANTE ESCOLAR DIGITAL", 105, 40, { align: "center" });
 
-      let y = 65;
-      doc.setFont("helvetica", "normal");
-      doc.text(`Folio: ${folio}`, 25, y); y += 8;
-      doc.text(`Alumno: ${nombre}`, 25, y); y += 8;
-      doc.text(`Número de control: ${numero}`, 25, y); y += 8;
-      doc.text(`Motivo: ${motivo}`, 25, y); y += 8;
-      doc.text(`Fechas de ausencia: ${fechas}`, 25, y); y += 8;
-      doc.text(`Entregado a: ${nombreEntrega} (${tipoEntrega})`, 25, y); y += 8;
-      doc.text(`Teléfono: ${telefono}`, 25, y); y += 8;
-      doc.text(`Validador: ${validador}`, 25, y); y += 8;
+  // Línea de especialidad con salto automático
+  doc.setFont("helvetica", "normal");
+  doc.setFontSize(11);
+  const lineaEspecialidad = `${especialidad} — ${semestre} Semestre — Turno ${turno}`;
+  const textoAjustado = doc.splitTextToSize(lineaEspecialidad, 165);
+  doc.text(textoAjustado, 25, 50);
+  let y = 50 + (textoAjustado.length * 6) + 10;
 
-      doc.addImage(qrImg, "PNG", 145, 65, 50, 50);
+  // Cuerpo del justificante
+  doc.text(`Folio: ${folio}`, 25, y); y += 8;
+  doc.text(`Alumno: ${nombre}`, 25, y); y += 8;
+  doc.text(`Número de control: ${numero}`, 25, y); y += 8;
+  doc.text(`Motivo: ${motivo}`, 25, y); y += 8;
+  doc.text(`Fechas de ausencia: ${fechas}`, 25, y); y += 8;
+  doc.text(`Entregado a: ${nombreEntrega} (${tipoEntrega})`, 25, y); y += 8;
+  doc.text(`Teléfono: ${telefono}`, 25, y); y += 8;
+  doc.text(`Validador: ${validador}`, 25, y); y += 8;
 
-      doc.text(`Fecha de emisión: ${new Date().toLocaleDateString()}`, 25, y + 6);
+  doc.addImage(qrImg, "PNG", 150, 60, 45, 45);
+  doc.text(`Fecha de emisión: ${new Date().toLocaleDateString()}`, 25, y + 6);
 
-      doc.setLineWidth(0.5);
-      doc.line(25, 145, 90, 145);
-      doc.text(validador, 25, 152);
-      doc.text("Validador de justificantes", 25, 158);
+  // Firmas
+  doc.setLineWidth(0.5);
+  doc.line(25, 150, 90, 150);
+  doc.text(validador, 25, 157);
+  doc.text("Validador de justificantes", 25, 163);
 
-      doc.line(25, 170, 90, 170);
-      doc.text("Firma del receptor", 25, 177);
+  doc.line(25, 175, 90, 175);
+  doc.text("Firma del receptor", 25, 182);
 
-      doc.setDrawColor(0);
-      doc.setLineWidth(0.8);
-      doc.rect(140, 140, 50, 50);
-      doc.setFontSize(9);
-      doc.text("SELLO DE LA ESCUELA", 165, 195, { align: "center" });
+  // Sello
+  doc.setDrawColor(0);
+  doc.setLineWidth(0.8);
+  doc.rect(140, 140, 50, 50);
+  doc.setFontSize(9);
+  doc.text("SELLO DE LA ESCUELA", 165, 195, { align: "center" });
 
-      doc.setFont("helvetica", "bold");
-      doc.setFontSize(11);
-      doc.text("El presente justificante tiene validez únicamente para efectos de control de asistencia.", 105, 215, { align: "center" });
-      doc.text("El cumplimiento académico y la entrega de actividades son responsabilidad exclusiva del alumno.", 105, 221, { align: "center" });
+  // Leyenda
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(10);
+  doc.text("El presente justificante tiene validez únicamente para control de asistencia.", 105, 210, { align: "center" });
+  doc.text("El cumplimiento académico es responsabilidad exclusiva del alumno.", 105, 216, { align: "center" });
 
-      doc.setFont("helvetica", "normal");
-      doc.setFontSize(9);
-      doc.setTextColor(130);
-      doc.text("© 2025 | Diseño con derechos de autor – Luis Eduardo Ibarra Hernández – CBTis No. 179", 105, 230, { align: "center" });
+  // Pie institucional
+  const pie = new Image();
+  pie.src = "pie.png";
+  try { doc.addImage(pie, "PNG", 10, 265, 190, 20); } catch(e){}
 
-      const pie = new Image();
-      pie.src = "pie.png";
-      try { doc.addImage(pie, "PNG", 10, 265, 190, 20); } catch(e){}
+  // Guardar PDF
+  doc.save(`Justificante_${folio}.pdf`);
 
-      doc.save(`Justificante_${folio}.pdf`);
+  // Registrar en Google Sheets
+  const fecha = new Date().toLocaleString();
+  const data = { fecha, folio, nombre, numero, especialidad, semestre, turno, motivo, fechas, nombreEntrega, tipoEntrega, telefono, validador };
+  await fetch(SCRIPT_URL, { 
+    method: "POST", 
+    mode: "no-cors", 
+    headers: { "Content-Type": "application/json" }, 
+    body: JSON.stringify(data) 
+  });
 
-      const fecha = new Date().toLocaleString();
-      const data = { fecha, folio, nombre, numero, especialidad, semestre, turno, motivo, fechas, nombreEntrega, tipoEntrega, telefono, validador };
-      await fetch(SCRIPT_URL, { method: "POST", mode: "no-cors", headers: { "Content-Type": "application/json" }, body: JSON.stringify(data) });
-      alert("✅ Justificante generado y registrado correctamente.");
-      document.getElementById("formJustificante").reset();
-    }
+  alert("✅ Justificante generado y registrado correctamente.");
+  document.getElementById("formJustificante").reset();
+}
   </script>
 </body>
 </html>
+
