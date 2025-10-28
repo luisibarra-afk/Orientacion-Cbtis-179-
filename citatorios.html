@@ -158,24 +158,24 @@ async function generarPDF() {
 
   const folio = "CIT-" + Math.floor(Math.random() * 1000000);
 
-  // Generar código QR
+  // 🧾 Generar código QR
   const qrDiv = document.getElementById('qrcode');
   qrDiv.innerHTML = "";
   new QRCode(qrDiv, { text: folio, width: 100, height: 100 });
   await new Promise(r => setTimeout(r, 500));
   const qrImg = qrDiv.querySelector('img').src;
 
-  // Encabezado
+  // 🧩 Encabezado
   const encabezado = new Image();
   encabezado.src = "encabezado.png";
   try { doc.addImage(encabezado, "PNG", 10, 5, 190, 25); } catch(e){}
 
-  // Título
+  // 🧩 Título
   doc.setFont("helvetica", "bold");
   doc.setFontSize(14);
   doc.text("CITATORIO ESCOLAR", 105, 40, { align: "center" });
 
-  // Datos
+  // 🧩 Datos principales
   doc.setFont("helvetica", "normal");
   doc.setFontSize(11);
   let y = 55;
@@ -183,48 +183,69 @@ async function generarPDF() {
   doc.text(`Alumno: ${nombre}`, 25, y); y += 8;
   doc.text(`Número de control: ${numero}`, 25, y); y += 8;
 
-  // ✅ Ajuste automático de línea larga
+  // ✅ Evita encimado en la línea de especialidad
   const lineaEspecialidad = `Especialidad: ${especialidad} — ${semestre} Semestre — ${turno}`;
   const textoAjustado = doc.splitTextToSize(lineaEspecialidad, 165);
   doc.text(textoAjustado, 25, y);
-  y += (textoAjustado.length * 6) + 2; // Espaciado dinámico según el alto de texto
+  y += (textoAjustado.length * 6) + 2; // espacio dinámico según líneas
 
   doc.text(`Motivo: ${motivo}`, 25, y); y += 8;
-  doc.text(`Fecha y hora de la cita: ${new Date(fechaCita).toLocaleString()}`, 25, y); y += 8;
+
+  // ✅ Evita “Invalid Date” con validación
+  let fechaCitaTexto = "";
+  if (fechaCita) {
+    const fechaObj = new Date(fechaCita);
+    const fechaLocal = fechaObj.toLocaleDateString();
+    const horaLocal = fechaObj.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    fechaCitaTexto = `${fechaLocal} — ${horaLocal}`;
+  } else {
+    fechaCitaTexto = "No especificada";
+  }
+  doc.text(`Fecha y hora de la cita: ${fechaCitaTexto}`, 25, y); y += 8;
+
   doc.text(`Persona citada: ${personaCitada}`, 25, y); y += 8;
   doc.text(`Teléfono: ${telefono}`, 25, y); y += 8;
   doc.text(`Emitido por: ${emitidoPor}`, 25, y); y += 10;
 
-  doc.addImage(qrImg, "PNG", 150, 60, 45, 45);
+  // ✅ Ajuste automático de posición del QR
+  const alturaQR = (textoAjustado.length > 1) ? 75 : 60;
+  doc.addImage(qrImg, "PNG", 150, alturaQR, 45, 45);
+
   doc.text(`Fecha de emisión: ${new Date().toLocaleDateString()}`, 25, y);
 
-  // Firmas
+  // 🖊️ Firmas
   doc.line(25, 155, 90, 155);
   doc.text(emitidoPor, 25, 162);
   doc.text("Firma del emisor", 25, 168);
 
-  // Sello
+  // 🏫 Sello institucional
   doc.rect(140, 140, 50, 50);
   doc.setFontSize(9);
   doc.text("SELLO DE LA ESCUELA", 165, 195, { align: "center" });
 
-  // Aviso final
+  // 🧾 Aviso final
   doc.setFont("helvetica", "bold");
   doc.setFontSize(11);
   doc.text("Se solicita la asistencia puntual del padre, madre o tutor.", 105, 215, { align: "center" });
   doc.text("El no acudir podrá derivar en medidas administrativas.", 105, 221, { align: "center" });
 
-  // Pie
+  // 🖋️ Pie institucional
   const pie = new Image();
   pie.src = "pie.png";
   try { doc.addImage(pie, "PNG", 10, 265, 190, 20); } catch(e){}
 
+  // 💾 Guardar PDF
   doc.save(`Citatorio_${folio}.pdf`);
 
-  // Registro en Google Sheets
+  // ☁️ Registrar en Google Sheets
   const fecha = new Date().toLocaleString();
   const data = { fecha, folio, nombre, numero, especialidad, semestre, turno, motivo, fechaCita, personaCitada, telefono, emitidoPor };
-  await fetch(SCRIPT_URL, { method: "POST", mode: "no-cors", headers: { "Content-Type": "application/json" }, body: JSON.stringify(data) });
+  await fetch(SCRIPT_URL, { 
+    method: "POST", 
+    mode: "no-cors", 
+    headers: { "Content-Type": "application/json" }, 
+    body: JSON.stringify(data) 
+  });
 
   alert("✅ Citatorio generado y registrado correctamente.");
   document.getElementById("formCitatorio").reset();
@@ -232,4 +253,5 @@ async function generarPDF() {
   </script>
 </body>
 </html>
+
 
