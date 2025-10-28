@@ -158,7 +158,7 @@ async function generarPDF() {
 
   const folio = "CIT-" + Math.floor(Math.random() * 1000000);
 
-  // 🧾 Generar código QR
+  // 🧾 Generar QR
   const qrDiv = document.getElementById('qrcode');
   qrDiv.innerHTML = "";
   new QRCode(qrDiv, { text: folio, width: 100, height: 100 });
@@ -175,23 +175,30 @@ async function generarPDF() {
   doc.setFontSize(14);
   doc.text("CITATORIO ESCOLAR", 105, 40, { align: "center" });
 
-  // 🧩 Datos principales
+  // 🧩 Datos
   doc.setFont("helvetica", "normal");
   doc.setFontSize(11);
   let y = 55;
-  doc.text(`Folio: ${folio}`, 25, y); y += 8;
-  doc.text(`Alumno: ${nombre}`, 25, y); y += 8;
-  doc.text(`Número de control: ${numero}`, 25, y); y += 8;
 
-  // ✅ Evita encimado en la línea de especialidad
-  const lineaEspecialidad = `Especialidad: ${especialidad} — ${semestre} Semestre — ${turno}`;
-  const textoAjustado = doc.splitTextToSize(lineaEspecialidad, 165);
-  doc.text(textoAjustado, 25, y);
-  y += (textoAjustado.length * 6) + 2; // espacio dinámico según líneas
+  // QR a la derecha
+  doc.addImage(qrImg, "PNG", 150, y - 5, 45, 45);
 
-  doc.text(`Motivo: ${motivo}`, 25, y); y += 8;
+  const margenTexto = 25;
+  const anchoMax = 115;
 
-  // ✅ Evita “Invalid Date” con validación
+  doc.text(`Folio: ${folio}`, margenTexto, y); y += 8;
+  doc.text(`Alumno: ${nombre}`, margenTexto, y); y += 8;
+  doc.text(`Número de control: ${numero}`, margenTexto, y); y += 8;
+
+  // ✅ Especialidad, turno y semestre en líneas separadas
+  doc.text(`Especialidad: ${especialidad}`, margenTexto, y); y += 8;
+  doc.text(`Semestre: ${semestre}`, margenTexto, y); y += 8;
+  doc.text(`Turno: ${turno}`, margenTexto, y); y += 8;
+
+  // Motivo
+  doc.text(`Motivo: ${motivo}`, margenTexto, y); y += 8;
+
+  // ✅ Fecha con validación
   let fechaCitaTexto = "";
   if (fechaCita) {
     const fechaObj = new Date(fechaCita);
@@ -201,17 +208,13 @@ async function generarPDF() {
   } else {
     fechaCitaTexto = "No especificada";
   }
-  doc.text(`Fecha y hora de la cita: ${fechaCitaTexto}`, 25, y); y += 8;
+  doc.text(`Fecha y hora de la cita: ${fechaCitaTexto}`, margenTexto, y); y += 8;
 
-  doc.text(`Persona citada: ${personaCitada}`, 25, y); y += 8;
-  doc.text(`Teléfono: ${telefono}`, 25, y); y += 8;
-  doc.text(`Emitido por: ${emitidoPor}`, 25, y); y += 10;
+  doc.text(`Persona citada: ${personaCitada}`, margenTexto, y); y += 8;
+  doc.text(`Teléfono: ${telefono}`, margenTexto, y); y += 8;
+  doc.text(`Emitido por: ${emitidoPor}`, margenTexto, y); y += 10;
 
-  // ✅ Ajuste automático de posición del QR
-  const alturaQR = (textoAjustado.length > 1) ? 75 : 60;
-  doc.addImage(qrImg, "PNG", 150, alturaQR, 45, 45);
-
-  doc.text(`Fecha de emisión: ${new Date().toLocaleDateString()}`, 25, y);
+  doc.text(`Fecha de emisión: ${new Date().toLocaleDateString()}`, margenTexto, y);
 
   // 🖊️ Firmas
   doc.line(25, 155, 90, 155);
@@ -253,5 +256,6 @@ async function generarPDF() {
   </script>
 </body>
 </html>
+
 
 
