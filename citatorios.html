@@ -141,88 +141,95 @@
     // URL del Google Apps Script (copia la tuya aquí)
     const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbx3-UzNO-jTqSwREy1_JXKo-ECCqw3P0uicpue9SMeMqBpKlsz6C7PCGLHEkHpLaZQD/exec";
 
-    async function generarPDF() {
-      const { jsPDF } = window.jspdf;
-      const doc = new jsPDF();
+async function generarPDF() {
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF();
 
-      const nombre = document.getElementById('nombre').value;
-      const numero = document.getElementById('numero').value;
-      const especialidad = document.getElementById('especialidad').value;
-      const semestre = document.getElementById('semestre').value;
-      const turno = document.getElementById('turno').value;
-      const motivo = document.getElementById('motivo').value;
-      const fechaCita = document.getElementById('fechaCita').value;
-      const personaCitada = document.getElementById('personaCitada').value;
-      const telefono = document.getElementById('telefono').value;
-      const emitidoPor = document.getElementById('emitidoPor').value;
+  const nombre = document.getElementById('nombre').value;
+  const numero = document.getElementById('numero').value;
+  const especialidad = document.getElementById('especialidad').value;
+  const semestre = document.getElementById('semestre').value;
+  const turno = document.getElementById('turno').value;
+  const motivo = document.getElementById('motivo').value;
+  const fechaCita = document.getElementById('fechaCita').value;
+  const personaCitada = document.getElementById('personaCitada').value;
+  const telefono = document.getElementById('telefono').value;
+  const emitidoPor = document.getElementById('emitidoPor').value;
 
-      const folio = "CIT-" + Math.floor(Math.random() * 1000000);
+  const folio = "CIT-" + Math.floor(Math.random() * 1000000);
 
-      // Generar código QR con el folio
-      const qrDiv = document.getElementById('qrcode');
-      qrDiv.innerHTML = "";
-      new QRCode(qrDiv, { text: folio, width: 100, height: 100 });
-      await new Promise(r => setTimeout(r, 500));
-      const qrImg = qrDiv.querySelector('img').src;
+  // Generar código QR
+  const qrDiv = document.getElementById('qrcode');
+  qrDiv.innerHTML = "";
+  new QRCode(qrDiv, { text: folio, width: 100, height: 100 });
+  await new Promise(r => setTimeout(r, 500));
+  const qrImg = qrDiv.querySelector('img').src;
 
-      // Encabezado
-      const encabezado = new Image();
-      encabezado.src = "encabezado.png";
-      try { doc.addImage(encabezado, "PNG", 10, 5, 190, 25); } catch(e){}
+  // Encabezado
+  const encabezado = new Image();
+  encabezado.src = "encabezado.png";
+  try { doc.addImage(encabezado, "PNG", 10, 5, 190, 25); } catch(e){}
 
-      // Título
-      doc.setFont("helvetica", "bold");
-      doc.setFontSize(14);
-      doc.text("CITATORIO ESCOLAR", 105, 40, { align: "center" });
+  // Título
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(14);
+  doc.text("CITATORIO ESCOLAR", 105, 40, { align: "center" });
 
-      // Datos
-      doc.setFont("helvetica", "normal");
-      doc.setFontSize(11);
-      let y = 55;
-      doc.text(`Folio: ${folio}`, 25, y); y += 8;
-      doc.text(`Alumno: ${nombre}`, 25, y); y += 8;
-      doc.text(`Número de control: ${numero}`, 25, y); y += 8;
-      doc.text(`Especialidad: ${especialidad} — ${semestre} Semestre — ${turno}`, 25, y); y += 8;
-      doc.text(`Motivo: ${motivo}`, 25, y); y += 8;
-      doc.text(`Fecha y hora de la cita: ${new Date(fechaCita).toLocaleString()}`, 25, y); y += 8;
-      doc.text(`Persona citada: ${personaCitada}`, 25, y); y += 8;
-      doc.text(`Teléfono: ${telefono}`, 25, y); y += 8;
-      doc.text(`Emitido por: ${emitidoPor}`, 25, y); y += 10;
+  // Datos
+  doc.setFont("helvetica", "normal");
+  doc.setFontSize(11);
+  let y = 55;
+  doc.text(`Folio: ${folio}`, 25, y); y += 8;
+  doc.text(`Alumno: ${nombre}`, 25, y); y += 8;
+  doc.text(`Número de control: ${numero}`, 25, y); y += 8;
 
-      doc.addImage(qrImg, "PNG", 150, 60, 45, 45);
-      doc.text(`Fecha de emisión: ${new Date().toLocaleDateString()}`, 25, y);
+  // ✅ Ajuste automático de línea larga
+  const lineaEspecialidad = `Especialidad: ${especialidad} — ${semestre} Semestre — ${turno}`;
+  const textoAjustado = doc.splitTextToSize(lineaEspecialidad, 165);
+  doc.text(textoAjustado, 25, y);
+  y += (textoAjustado.length * 6) + 2; // Espaciado dinámico según el alto de texto
 
-      // Firma
-      doc.line(25, 155, 90, 155);
-      doc.text(emitidoPor, 25, 162);
-      doc.text("Firma del emisor", 25, 168);
+  doc.text(`Motivo: ${motivo}`, 25, y); y += 8;
+  doc.text(`Fecha y hora de la cita: ${new Date(fechaCita).toLocaleString()}`, 25, y); y += 8;
+  doc.text(`Persona citada: ${personaCitada}`, 25, y); y += 8;
+  doc.text(`Teléfono: ${telefono}`, 25, y); y += 8;
+  doc.text(`Emitido por: ${emitidoPor}`, 25, y); y += 10;
 
-      // Sello
-      doc.rect(140, 140, 50, 50);
-      doc.setFontSize(9);
-      doc.text("SELLO DE LA ESCUELA", 165, 195, { align: "center" });
+  doc.addImage(qrImg, "PNG", 150, 60, 45, 45);
+  doc.text(`Fecha de emisión: ${new Date().toLocaleDateString()}`, 25, y);
 
-      // Mensaje final
-      doc.setFont("helvetica", "bold");
-      doc.setFontSize(11);
-      doc.text("Se solicita la asistencia puntual del padre, madre o tutor.", 105, 215, { align: "center" });
-      doc.text("El no acudir podrá derivar en medidas administrativas.", 105, 221, { align: "center" });
+  // Firmas
+  doc.line(25, 155, 90, 155);
+  doc.text(emitidoPor, 25, 162);
+  doc.text("Firma del emisor", 25, 168);
 
-      // Pie
-      const pie = new Image();
-      pie.src = "pie.png";
-      try { doc.addImage(pie, "PNG", 10, 265, 190, 20); } catch(e){}
+  // Sello
+  doc.rect(140, 140, 50, 50);
+  doc.setFontSize(9);
+  doc.text("SELLO DE LA ESCUELA", 165, 195, { align: "center" });
 
-      doc.save(`Citatorio_${folio}.pdf`);
+  // Aviso final
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(11);
+  doc.text("Se solicita la asistencia puntual del padre, madre o tutor.", 105, 215, { align: "center" });
+  doc.text("El no acudir podrá derivar en medidas administrativas.", 105, 221, { align: "center" });
 
-      // Registrar datos en Google Sheets
-      const fecha = new Date().toLocaleString();
-      const data = { fecha, folio, nombre, numero, especialidad, semestre, turno, motivo, fechaCita, personaCitada, telefono, emitidoPor };
-      await fetch(SCRIPT_URL, { method: "POST", mode: "no-cors", headers: { "Content-Type": "application/json" }, body: JSON.stringify(data) });
+  // Pie
+  const pie = new Image();
+  pie.src = "pie.png";
+  try { doc.addImage(pie, "PNG", 10, 265, 190, 20); } catch(e){}
 
-      alert("✅ Citatorio generado y registrado correctamente.");
-      document.getElementById("formCitatorio").reset();
-    }
+  doc.save(`Citatorio_${folio}.pdf`);
+
+  // Registro en Google Sheets
+  const fecha = new Date().toLocaleString();
+  const data = { fecha, folio, nombre, numero, especialidad, semestre, turno, motivo, fechaCita, personaCitada, telefono, emitidoPor };
+  await fetch(SCRIPT_URL, { method: "POST", mode: "no-cors", headers: { "Content-Type": "application/json" }, body: JSON.stringify(data) });
+
+  alert("✅ Citatorio generado y registrado correctamente.");
+  document.getElementById("formCitatorio").reset();
+}
   </script>
 </body>
 </html>
+
