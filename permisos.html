@@ -229,10 +229,10 @@
     doc.line(25, y, 90, y);
     doc.text("Firma del validador", 25, y + 7);
 
-    // Sello
-    doc.rect(140, y - 35, 50, 50);
+    // 🏫 Sello institucional (posición fija inferior derecha)
+    doc.rect(140, 180, 50, 50); // x=140, y=180
     doc.setFontSize(9);
-    doc.text("SELLO DE LA ESCUELA", 165, y + 22, { align: "center" });
+    doc.text("SELLO DE LA ESCUELA", 165, 237, { align: "center" });
 
     // Leyenda
     doc.setFont("helvetica", "bold");
@@ -267,5 +267,6 @@
 
 </body>
 </html>
+
 
 
