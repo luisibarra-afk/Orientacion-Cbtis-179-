@@ -151,94 +151,114 @@
   // URL de Google Apps Script
   const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxCCTGL8KNcGNlMJjrVmAPinqhzlgib4QYlMtvCK4jpRhJR-uxVAZkcmgosRBPUP4hCMg/exec";
 
-  async function generarPDF() {
-    const { jsPDF } = window.jspdf;
-    const doc = new jsPDF();
+async function generarPDF() {
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF();
 
-    // Datos
-    const nombre = document.getElementById('nombre').value;
-    const numero = document.getElementById('numero').value;
-    const especialidad = document.getElementById('especialidad').value;
-    const semestre = document.getElementById('semestre').value;
-    const turno = document.getElementById('turno').value;
-    const motivo = document.getElementById('motivo').value;
-    const horaSalida = document.getElementById('horaSalida').value;
-    const autoriza = document.getElementById('autoriza').value;
-    const responsable = document.getElementById('responsable').value;
-    const parentesco = document.getElementById('parentesco').value;
-    const telefono = document.getElementById('telefono').value;
+  const nombre = document.getElementById('nombre').value;
+  const numero = document.getElementById('numero').value;
+  const especialidad = document.getElementById('especialidad').value;
+  const semestre = document.getElementById('semestre').value;
+  const turno = document.getElementById('turno').value;
+  const motivo = document.getElementById('motivo').value;
+  const horaSalida = document.getElementById('horaSalida').value;
+  const autoriza = document.getElementById('autoriza').value;
+  const responsable = document.getElementById('responsable').value;
+  const parentesco = document.getElementById('parentesco').value;
+  const telefono = document.getElementById('telefono').value;
+  const validador = document.getElementById('validador').value;
 
-    const folio = "PER-" + Math.floor(Math.random() * 1000000);
+  const folio = "PER-" + Math.floor(Math.random() * 1000000);
 
-    // Generar QR
-    const qrDiv = document.getElementById('qrcode');
-    qrDiv.innerHTML = "";
-    new QRCode(qrDiv, { text: folio, width: 100, height: 100 });
-    await new Promise(r => setTimeout(r, 500));
-    const qrImg = qrDiv.querySelector('img').src;
+  // 🧾 Generar QR
+  const qrDiv = document.getElementById('qrcode');
+  qrDiv.innerHTML = "";
+  new QRCode(qrDiv, { text: folio, width: 100, height: 100 });
+  await new Promise(r => setTimeout(r, 500));
+  const qrImg = qrDiv.querySelector('img').src;
 
-    // Encabezado
-    const encabezado = new Image();
-    encabezado.src = "encabezado.png";
-    try { doc.addImage(encabezado, "PNG", 10, 5, 190, 25); } catch(e){}
+  // 🧩 Encabezado
+  const encabezado = new Image();
+  encabezado.src = "encabezado.png";
+  try { doc.addImage(encabezado, "PNG", 10, 5, 190, 25); } catch(e){}
 
-    // Título
-    doc.setFont("helvetica", "bold");
-    doc.setFontSize(14);
-    doc.text("PERMISO DE SALIDA ESCOLAR", 105, 40, { align: "center" });
+  // 🧩 Título
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(14);
+  doc.text("PERMISO DE SALIDA ESCOLAR", 105, 40, { align: "center" });
 
-    // Contenido
-    doc.setFont("helvetica", "normal");
-    doc.setFontSize(11);
-    let y = 55;
-    doc.text(`Folio: ${folio}`, 25, y); y += 8;
-    doc.text(`Alumno: ${nombre}`, 25, y); y += 8;
-    doc.text(`Número de control: ${numero}`, 25, y); y += 8;
-    doc.text(`Especialidad: ${especialidad} — ${semestre} Semestre — ${turno}`, 25, y); y += 8;
-    doc.text(`Motivo: ${motivo}`, 25, y); y += 8;
-    doc.text(`Hora de salida: ${horaSalida}`, 25, y); y += 8;
-    doc.text(`Autoriza: ${autoriza}`, 25, y); y += 8;
-    doc.text(`Responsable: ${responsable} (${parentesco})`, 25, y); y += 8;
-    doc.text(`Teléfono: ${telefono}`, 25, y); y += 10;
+  // 🧩 Cuerpo del documento
+  doc.setFont("helvetica", "normal");
+  doc.setFontSize(11);
+  let y = 55;
+  const margenTexto = 25;
 
-    doc.addImage(qrImg, "PNG", 150, 55, 45, 45);
+  // QR a la derecha
+  doc.addImage(qrImg, "PNG", 150, y - 5, 45, 45);
 
-    // Línea y texto de firma del responsable
-    doc.line(25, y, 90, y);
-    doc.text("Firma del responsable", 25, y + 7);
+  // 🔹 Datos principales
+  doc.text(`Folio: ${folio}`, margenTexto, y); y += 8;
+  doc.text(`Alumno: ${nombre}`, margenTexto, y); y += 8;
+  doc.text(`Número de control: ${numero}`, margenTexto, y); y += 8;
 
-    // Segunda línea (más abajo) para firma del validador
-    const y2 = y + 25;
-    doc.line(25, y2, 90, y2);
-    doc.text("Firma del validador", 25, y2 + 7);
+  doc.text(`Especialidad: ${especialidad}`, margenTexto, y); y += 8;
+  doc.text(`Semestre: ${semestre}`, margenTexto, y); y += 8;
+  doc.text(`Turno: ${turno}`, margenTexto, y); y += 8;
 
-    // Sello de la escuela al lado derecho de la segunda línea
-    doc.rect(140, y2 - 15, 50, 50);
-    doc.setFontSize(9);
-    doc.text("SELLO DE LA ESCUELA", 165, y2 + 40, { align: "center" });
+  // 🔹 Motivo con ajuste automático de texto
+  const lineasMotivo = doc.splitTextToSize(`Motivo: ${motivo}`, 150);
+  doc.text(lineasMotivo, margenTexto, y);
+  y += lineasMotivo.length * 6;
 
-    // Aviso final
-    doc.setFont("helvetica", "bold");
-    doc.setFontSize(10);
-    doc.text("El presente permiso solo autoriza la salida durante el horario indicado.", 105, 210, { align: "center" });
-    doc.text("El alumno debe justificar cualquier inasistencia derivada.", 105, 216, { align: "center" });
+  doc.text(`Hora de salida: ${horaSalida}`, margenTexto, y); y += 8;
+  doc.text(`Autoriza: ${autoriza}`, margenTexto, y); y += 8;
+  doc.text(`Responsable: ${responsable} (${parentesco})`, margenTexto, y); y += 8;
+  doc.text(`Teléfono: ${telefono}`, margenTexto, y); y += 10;
+  doc.text(`Validador: ${validador}`, margenTexto, y); y += 8;
+  doc.text(`Fecha de emisión: ${new Date().toLocaleDateString()}`, margenTexto, y);
 
-    // Pie institucional
-    const pie = new Image();
-    pie.src = "pie.png";
-    try { doc.addImage(pie, "PNG", 10, 265, 190, 20); } catch(e){}
+  // 🖊️ Firmas (una debajo de otra)
+  y += 25;
+  doc.line(25, y, 90, y);
+  doc.text("Firma del responsable", 25, y + 7);
 
-    // Guardar PDF
-    doc.save(`Permiso_${folio}.pdf`);
+  y += 25;
+  doc.line(25, y, 90, y);
+  doc.text("Firma del validador", 25, y + 7);
 
-    // Registro en Sheets
-    const fecha = new Date().toLocaleString();
-    const data = { fecha, folio, nombre, numero, especialidad, semestre, turno, motivo, horaSalida, autoriza, responsable, parentesco, telefono };
-    await fetch(SCRIPT_URL, { method: "POST", mode: "no-cors", headers: { "Content-Type": "application/json" }, body: JSON.stringify(data) });
+  // 🏫 Sello institucional
+  doc.rect(140, y - 35, 50, 50);
+  doc.setFontSize(9);
+  doc.text("SELLO DE LA ESCUELA", 165, y + 22, { align: "center" });
 
-    alert("✅ Permiso generado y registrado correctamente.");
-    document.getElementById("formPermiso").reset();
-  }
+  // 🧾 Leyenda final
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(10);
+  doc.text("El presente permiso solo autoriza la salida durante el horario indicado.", 105, 240, { align: "center" });
+  doc.text("El alumno debe justificar cualquier inasistencia derivada.", 105, 246, { align: "center" });
+
+  // 🖋️ Pie institucional
+  const pie = new Image();
+  pie.src = "pie.png";
+  try { doc.addImage(pie, "PNG", 10, 265, 190, 20); } catch(e){}
+
+  // 💾 Guardar PDF
+  doc.save(`Permiso_${folio}.pdf`);
+
+  // ☁️ Registrar en Google Sheets
+  const fecha = new Date().toLocaleString();
+  const data = { fecha, folio, nombre, numero, especialidad, semestre, turno, motivo, horaSalida, autoriza, responsable, parentesco, telefono, validador };
+  await fetch(SCRIPT_URL, { 
+    method: "POST", 
+    mode: "no-cors", 
+    headers: { "Content-Type": "application/json" }, 
+    body: JSON.stringify(data) 
+  });
+
+  alert("✅ Permiso de salida generado y registrado correctamente.");
+  document.getElementById("formPermiso").reset();
+}
 </script>
 </body>
 </html>
+
