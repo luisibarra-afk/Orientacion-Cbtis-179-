@@ -156,13 +156,14 @@
     window.location.href = "index.html";
   }
 
-  // URL de Google Apps Script
   const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxCCTGL8KNcGNlMJjrVmAPinqhzlgib4QYlMtvCK4jpRhJR-uxVAZkcmgosRBPUP4hCMg/exec";
 
   async function generarPDF() {
-    const { jsPDF } = window.jspdf;
+    // ✅ Inicialización segura
+    const jsPDF = window.jspdf.jsPDF;
     const doc = new jsPDF();
 
+    // Datos
     const nombre = document.getElementById('nombre').value;
     const numero = document.getElementById('numero').value;
     const especialidad = document.getElementById('especialidad').value;
@@ -185,78 +186,76 @@
     await new Promise(r => setTimeout(r, 500));
     const qrImg = qrDiv.querySelector('img').src;
 
-    // 🧩 Encabezado
+    // Encabezado
     const encabezado = new Image();
     encabezado.src = "encabezado.png";
     try { doc.addImage(encabezado, "PNG", 10, 5, 190, 25); } catch(e){}
 
-    // 🧩 Título
     doc.setFont("helvetica", "bold");
     doc.setFontSize(14);
     doc.text("PERMISO DE SALIDA ESCOLAR", 105, 40, { align: "center" });
 
-    // 🧩 Cuerpo
+    // Cuerpo
     doc.setFont("helvetica", "normal");
     doc.setFontSize(11);
     let y = 55;
-    const margenTexto = 25;
+    const margen = 25;
 
     doc.addImage(qrImg, "PNG", 150, y - 5, 45, 45);
 
-    doc.text(`Folio: ${folio}`, margenTexto, y); y += 8;
-    doc.text(`Alumno: ${nombre}`, margenTexto, y); y += 8;
-    doc.text(`Número de control: ${numero}`, margenTexto, y); y += 8;
-    doc.text(`Especialidad: ${especialidad}`, margenTexto, y); y += 8;
-    doc.text(`Semestre: ${semestre}`, margenTexto, y); y += 8;
-    doc.text(`Turno: ${turno}`, margenTexto, y); y += 8;
+    doc.text(`Folio: ${folio}`, margen, y); y += 8;
+    doc.text(`Alumno: ${nombre}`, margen, y); y += 8;
+    doc.text(`Número de control: ${numero}`, margen, y); y += 8;
+    doc.text(`Especialidad: ${especialidad}`, margen, y); y += 8;
+    doc.text(`Semestre: ${semestre}`, margen, y); y += 8;
+    doc.text(`Turno: ${turno}`, margen, y); y += 8;
 
     const motivoLargo = doc.splitTextToSize(`Motivo: ${motivo}`, 150);
-    doc.text(motivoLargo, margenTexto, y);
+    doc.text(motivoLargo, margen, y);
     y += motivoLargo.length * 6;
 
-    doc.text(`Hora de salida: ${horaSalida}`, margenTexto, y); y += 8;
-    doc.text(`Autoriza: ${autoriza}`, margenTexto, y); y += 8;
-    doc.text(`Responsable: ${responsable} (${parentesco})`, margenTexto, y); y += 8;
-    doc.text(`Teléfono: ${telefono}`, margenTexto, y); y += 8;
-    doc.text(`Validador: ${validador}`, margenTexto, y); y += 10;
-    doc.text(`Fecha de emisión: ${new Date().toLocaleDateString()}`, margenTexto, y);
+    doc.text(`Hora de salida: ${horaSalida}`, margen, y); y += 8;
+    doc.text(`Autoriza: ${autoriza}`, margen, y); y += 8;
+    doc.text(`Responsable: ${responsable} (${parentesco})`, margen, y); y += 8;
+    doc.text(`Teléfono: ${telefono}`, margen, y); y += 8;
+    doc.text(`Validador: ${validador}`, margen, y); y += 10;
+    doc.text(`Fecha de emisión: ${new Date().toLocaleDateString()}`, margen, y);
 
-    // 🖊️ Firmas
+    // Firmas
     y += 25;
     doc.line(25, y, 90, y);
     doc.text("Firma del responsable", 25, y + 7);
-
     y += 25;
     doc.line(25, y, 90, y);
     doc.text("Firma del validador", 25, y + 7);
 
-    // 🏫 Sello
+    // Sello
     doc.rect(140, y - 35, 50, 50);
     doc.setFontSize(9);
     doc.text("SELLO DE LA ESCUELA", 165, y + 22, { align: "center" });
 
-    // 🧾 Leyenda final
+    // Leyenda
     doc.setFont("helvetica", "bold");
     doc.setFontSize(10);
     doc.text("El presente permiso solo autoriza la salida durante el horario indicado.", 105, 240, { align: "center" });
     doc.text("El alumno debe justificar cualquier inasistencia derivada.", 105, 246, { align: "center" });
 
-    // 🖋️ Pie institucional
+    // Pie
     const pie = new Image();
     pie.src = "pie.png";
     try { doc.addImage(pie, "PNG", 10, 265, 190, 20); } catch(e){}
 
-    // 💾 Guardar PDF
+    // Guardar
     doc.save(`Permiso_${folio}.pdf`);
 
-    // ☁️ Registrar en Google Sheets
+    // Registrar
     const fecha = new Date().toLocaleString();
     const data = { fecha, folio, nombre, numero, especialidad, semestre, turno, motivo, horaSalida, autoriza, responsable, parentesco, telefono, validador };
     await fetch(SCRIPT_URL, { 
-      method: "POST", 
-      mode: "no-cors", 
-      headers: { "Content-Type": "application/json" }, 
-      body: JSON.stringify(data) 
+      method: "POST",
+      mode: "no-cors",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(data)
     });
 
     alert("✅ Permiso de salida generado y registrado correctamente.");
@@ -265,4 +264,8 @@
 </script>
 </body>
 </html>
+
+</body>
+</html>
+
 
